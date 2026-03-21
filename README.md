@@ -1,6 +1,9 @@
 # MedAI — Diagnostic Vision Platform
 
-MedAI is an AI-powered healthcare diagnostic platform. It helps analyze medical images (X-rays, MRIs, etc.), extract information from medical PDFs, and provides a chatbot assistant for medical queries. The platform uses Google Gemini AI for analysis and PyTorch (ResNet-50) to generate visual heatmaps (Grad-CAM) showing where the AI detected abnormalities.
+
+MedAI is an AI-powered healthcare diagnostic platform.
+This is a practise project 
+It helps analyze medical images (X-rays, MRIs, etc.), extract information from medical PDFs, and provides a chatbot assistant for medical queries. The platform uses Google Gemini AI for analysis and PyTorch (ResNet-50) to generate visual heatmaps (Grad-CAM) showing where the AI detected abnormalities.
 
 ## Features
 - **Medical Image Analysis:** Upload an X-ray or medical image to see if it's Normal or Affected, along with a heatmap.
