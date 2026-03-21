@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MedAI — Diagnostic Vision Platform</title>
+  <meta name="description" content="AI-powered healthcare diagnostics: Grad-CAM X-ray analysis, medical assistant, patient record NLP, PDF analyzer, and personalized medicine dashboard." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <!-- ── HEADER ── -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-icon">⚕</div>
+        <div>
+          <span class="brand-name">MedAI</span>
+          <span class="brand-tagline">Diagnostic Vision Platform</span>
+        </div>
+      </div>
+      <div class="header-status">
+        <span class="status-dot" id="apiStatusDot"></span>
+        <span id="apiStatusText">Checking...</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── NAVIGATION ── -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <button class="nav-btn active" data-tab="xray" id="navXray">
+        <span class="nav-icon">🩻</span>
+        <span>Diagnostic Vision</span>
+      </button>
+      <button class="nav-btn" data-tab="pdf" id="navPdf">
+        <span class="nav-icon">📄</span>
+        <span>PDF Analyzer</span>
+      </button>
+      <button class="nav-btn" data-tab="chat" id="navChat">
+        <span class="nav-icon">🤖</span>
+        <span>Medical Assistant</span>
+      </button>
+      <button class="nav-btn" data-tab="records" id="navRecords">
+        <span class="nav-icon">📋</span>
+        <span>Patient Records</span>
+      </button>
+      <button class="nav-btn" data-tab="medicine" id="navMedicine">
+        <span class="nav-icon">💊</span>
+        <span>Risk Assessment</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ── MAIN CONTENT ── -->
+  <main class="main">
+
+    <!-- ══════════════════════════════════════ -->
+    <!-- TAB 1: Diagnostic Vision (X-Ray + GradCAM) -->
+    <!-- ══════════════════════════════════════ -->
+    <section class="tab-panel active" id="tab-xray">
+      <div class="panel-header">
+        <h1 class="panel-title">🩻 AI Diagnostic Vision</h1>
+        <p class="panel-sub">Upload a medical image (X-Ray, CT, MRI, skin lesion). The AI classifies it as <strong>Normal</strong> or <strong>Affected</strong> and generates a <strong>Grad-CAM heatmap</strong> showing exactly where the abnormality is detected.</p>
+      </div>
+
+      <div class="xray-grid">
+        <!-- Upload Zone -->
+        <div class="card upload-card">
+          <div class="upload-zone" id="uploadZone">
+            <div class="upload-icon">📂</div>
+            <p class="upload-title">Drag &amp; Drop Medical Image Here</p>
+            <p class="upload-sub">Supports JPG, PNG — X-Ray, CT, MRI, Skin Lesion</p>
+            <label class="btn btn-primary" for="fileInput">
+              Choose File
+            </label>
+            <input type="file" id="fileInput" accept="image/*" hidden />
+          </div>
+          <div class="image-preview-wrap hidden" id="imagePreviewWrap">
+            <div class="image-preview-header">
+              <span class="preview-label">Original Image</span>
+            </div>
+            <img id="imagePreview" class="image-preview" alt="Medical image preview" />
+            <div class="image-meta" id="imageMeta"></div>
+            <button class="btn btn-primary" id="analyzeBtn">
+              <span>🔬 Analyze &amp; Generate Heatmap</span>
+            </button>
+            <button class="btn btn-ghost" id="clearImageBtn">Clear</button>
+          </div>
+        </div>
+
+        <!-- Report Panel -->
+        <div class="card report-card" id="reportCard">
+          <div class="report-placeholder" id="reportPlaceholder">
+            <div class="placeholder-icon">📊</div>
+            <p>Upload and analyze an image to see the diagnostic report and Grad-CAM heatmap here.</p>
+          </div>
+          <div class="report-content hidden" id="reportContent"></div>
+        </div>
+      </div>
+
+      <!-- Heatmap Side-by-Side -->
+      <div class="heatmap-section hidden" id="heatmapSection">
+        <h2 class="section-title">🔥 Grad-CAM Attention Heatmap</h2>
+        <p class="section-sub">The heatmap shows <strong>where the AI's neural network focused</strong> when analyzing your image. Red/yellow areas = high attention regions where abnormalities may be present.</p>
+        <div class="heatmap-grid">
+          <div class="heatmap-panel">
+            <div class="heatmap-panel-label">📷 Original Image</div>
+            <img id="heatmapOriginal" class="heatmap-img" alt="Original medical image" />
+          </div>
+          <div class="heatmap-panel">
+            <div class="heatmap-panel-label affected-label">🔥 Grad-CAM Heatmap (ResNet-50)</div>
+            <img id="heatmapGradcam" class="heatmap-img" alt="Grad-CAM heatmap overlay" />
+            <div class="heatmap-legend">
+              <span class="legend-item cold">Low Attention</span>
+              <div class="legend-bar"></div>
+              <span class="legend-item hot">High Attention</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading overlay -->
+      <div class="loading-overlay hidden" id="xrayLoading">
+        <div class="loading-card">
+          <div class="spinner"></div>
+          <p class="loading-title">Analyzing Medical Image</p>
+          <p class="loading-sub">Running Gemini Vision + Grad-CAM neural network...</p>
+          <div class="loading-steps" id="loadingSteps"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════ -->
+    <!-- TAB 2: PDF Analyzer                   -->
+    <!-- ══════════════════════════════════════ -->
+    <section class="tab-panel" id="tab-pdf">
+      <div class="panel-header">
+        <h1 class="panel-title">📄 Medical PDF Analyzer</h1>
+        <p class="panel-sub">Upload any medical PDF — lab reports, discharge summaries, prescriptions, radiology reports. The AI extracts and structures all key medical information.</p>
+      </div>
+
+      <div class="pdf-grid">
+        <!-- PDF Upload -->
+        <div class="card upload-card">
+          <div class="upload-zone" id="pdfUploadZone">
+            <div class="upload-icon">📋</div>
+            <p class="upload-title">Drop Medical PDF Here</p>
+            <p class="upload-sub">Lab reports · Discharge summaries · Prescriptions · Radiology reports</p>
+            <label class="btn btn-primary" for="pdfInput">
+              Choose PDF
+            </label>
+            <input type="file" id="pdfInput" accept=".pdf,application/pdf" hidden />
+          </div>
+          <div class="pdf-preview-wrap hidden" id="pdfPreviewWrap">
+            <div class="pdf-file-icon">📄</div>
+            <div class="pdf-filename" id="pdfFilename"></div>
+            <div class="pdf-meta" id="pdfMeta"></div>
+            <button class="btn btn-primary" id="analyzePdfBtn">
+              <span>🔍 Analyze PDF</span>
+            </button>
+            <button class="btn btn-ghost" id="clearPdfBtn">Clear</button>
+          </div>
+        </div>
+
+        <!-- PDF Results -->
+        <div class="card report-card" id="pdfReportCard">
+          <div class="report-placeholder" id="pdfPlaceholder">
+            <div class="placeholder-icon">📑</div>
+            <p>Upload a medical PDF to extract diagnoses, findings, medications, and recommendations.</p>
+          </div>
+          <div class="report-content hidden" id="pdfContent"></div>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div class="loading-overlay hidden" id="pdfLoading">
+        <div class="loading-card">
+          <div class="spinner"></div>
+          <p class="loading-title">Analyzing PDF Document</p>
+          <p class="loading-sub">Extracting text and running Gemini AI analysis...</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════ -->
+    <!-- TAB 3: Medical Chat Assistant         -->
+    <!-- ══════════════════════════════════════ -->
+    <section class="tab-panel" id="tab-chat">
+      <div class="panel-header">
+        <h1 class="panel-title">🤖 Medical Virtual Assistant</h1>
+        <p class="panel-sub">Ask any medical question — symptoms, medications, conditions, treatment options. Powered by Gemini AI with medical training.</p>
+      </div>
+
+      <div class="chat-container">
+        <div class="chat-messages" id="chatMessages">
+          <div class="chat-msg assistant">
+            <div class="msg-avatar">⚕</div>
+            <div class="msg-bubble">
+              <p>Hello! I'm <strong>MedAI</strong>, your healthcare assistant. I can help you with:</p>
+              <ul>
+                <li>🔍 Understanding symptoms and conditions</li>
+                <li>💊 Medication information and interactions</li>
+                <li>🏥 Treatment options and procedures</li>
+                <li>📊 Lab results interpretation</li>
+                <li>🧬 Preventive health guidance</li>
+              </ul>
+              <p style="margin-top:12px;font-size:0.8rem;opacity:0.7;">⚠️ For diagnosis and treatment, always consult a licensed physician.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-input-bar">
+          <div class="quick-chips">
+            <button class="chip" onclick="sendQuickMessage('What are symptoms of a heart attack?')">Heart Attack Symptoms</button>
+            <button class="chip" onclick="sendQuickMessage('What is the difference between Type 1 and Type 2 diabetes?')">Diabetes Types</button>
+            <button class="chip" onclick="sendQuickMessage('How do antibiotics work?')">How Antibiotics Work</button>
+            <button class="chip" onclick="sendQuickMessage('What are normal blood pressure ranges?')">Blood Pressure Ranges</button>
+          </div>
+          <div class="input-row">
+            <textarea class="chat-input" id="chatInput" placeholder="Ask a medical question..." rows="1"></textarea>
+            <button class="btn-send" id="sendBtn" onclick="handleChatSend()">
+              <span>➤</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════ -->
+    <!-- TAB 4: Patient Records NLP            -->
+    <!-- ══════════════════════════════════════ -->
+    <section class="tab-panel" id="tab-records">
+      <div class="panel-header">
+        <h1 class="panel-title">📋 Patient Records NLP Analyzer</h1>
+        <p class="panel-sub">Paste any patient record, clinical note, or discharge summary. The AI will extract structured medical entities automatically.</p>
+      </div>
+
+      <div class="records-grid">
+        <div class="card">
+          <h2 class="card-title">Patient Record Input</h2>
+          <textarea class="record-input" id="recordInput" placeholder="Paste patient notes, discharge summary, clinical notes here...
+
+Example:
+Patient: John Doe, 58M
+CC: Chest pain and shortness of breath for 2 days
+PMH: HTN, T2DM, hyperlipidemia
+Medications: Metformin 1000mg BID, Lisinopril 10mg QD
+Vitals: BP 158/92, HR 88, O2 94%
+Assessment: Rule out ACS, possible GERD
+Plan: EKG, troponin levels, cardiology consult"></textarea>
+          <div class="record-actions">
+            <button class="btn btn-primary" id="analyzeRecordBtn" onclick="analyzeRecord()">
+              🔍 Analyze Record
+            </button>
+            <button class="btn btn-ghost" onclick="loadSampleRecord()">Load Sample</button>
+            <button class="btn btn-ghost" onclick="clearRecord()">Clear</button>
+          </div>
+        </div>
+
+        <div class="card record-results-card" id="recordResults">
+          <div class="report-placeholder" id="recordPlaceholder">
+            <div class="placeholder-icon">🧬</div>
+            <p>Paste a patient record and click Analyze to extract medical entities.</p>
+          </div>
+          <div class="hidden" id="recordResultsContent"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════ -->
+    <!-- TAB 5: Risk Assessment                -->
+    <!-- ══════════════════════════════════════ -->
+    <section class="tab-panel" id="tab-medicine">
+      <div class="panel-header">
+        <h1 class="panel-title">💊 Personalized Risk Assessment</h1>
+        <p class="panel-sub">Enter your health metrics to receive an AI-powered personalized risk analysis and lifestyle recommendations.</p>
+      </div>
+
+      <div class="medicine-grid">
+        <!-- Input Form -->
+        <div class="card">
+          <h2 class="card-title">Health Metrics</h2>
+          <div class="metrics-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Age</label>
+                <input type="number" class="form-input" id="mAge" placeholder="e.g. 45" min="1" max="120" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Gender</label>
+                <select class="form-input" id="mGender">
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Blood Pressure</label>
+                <input type="text" class="form-input" id="mBP" placeholder="e.g. 130/85" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Fasting Glucose (mg/dL)</label>
+                <input type="number" class="form-input" id="mGlucose" placeholder="e.g. 110" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">BMI</label>
+                <input type="number" class="form-input" id="mBMI" placeholder="e.g. 27.5" step="0.1" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Total Cholesterol (mg/dL)</label>
+                <input type="number" class="form-input" id="mCholesterol" placeholder="e.g. 210" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Symptoms / Chief Complaints</label>
+              <textarea class="form-input" id="mSymptoms" rows="3" placeholder="Describe any symptoms (e.g. occasional chest tightness, fatigue, headaches)..."></textarea>
+            </div>
+            <button class="btn btn-primary btn-full" id="assessBtn" onclick="runRiskAssessment()">
+              🧬 Run Risk Assessment
+            </button>
+          </div>
+        </div>
+
+        <!-- Results -->
+        <div class="card risk-results-card" id="riskResults">
+          <div class="report-placeholder" id="riskPlaceholder">
+            <div class="placeholder-icon">❤️</div>
+            <p>Enter your health metrics to receive a personalized risk assessment and recommendations.</p>
+          </div>
+          <div class="hidden" id="riskResultsContent"></div>
+        </div>
+      </div>
+
+      <!-- Charts row -->
+      <div class="charts-row hidden" id="chartsRow">
+        <div class="card chart-card">
+          <h3 class="card-title">Risk Level Overview</h3>
+          <canvas id="riskChart" width="300" height="300"></canvas>
+        </div>
+        <div class="card chart-card">
+          <h3 class="card-title">Health Score Gauge</h3>
+          <canvas id="healthChart" width="300" height="300"></canvas>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── FOOTER ── -->
+  <footer class="footer">
+    <p>⚕ MedAI Diagnostic Vision Platform &mdash; <strong>For educational and demonstration purposes only.</strong> Always consult a licensed medical professional for diagnosis and treatment.</p>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

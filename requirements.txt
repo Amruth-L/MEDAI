@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+python-multipart
+google-genai
+Pillow
+python-dotenv
+torch
+torchvision
+PyMuPDF
+opencv-python-headless
+numpy

@@ -1,0 +1,1 @@
+Patient: John Doe. Diagnosis: Hypertension. Blood Pressure: 150/95. Meds: Lisinopril 10mg.

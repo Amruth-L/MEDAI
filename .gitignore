@@ -1,0 +1,76 @@
+# ─── Secrets & Environment ─────────────────────────────────
+.env
+.env.*
+!.env.example
+
+
+# ─── Python ────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.whl
+
+# ─── Virtual Environments ──────────────────────────────────
+venv/
+.venv/
+env/
+ENV/
+.Python
+
+# ─── Testing & Coverage ────────────────────────────────────
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+*.log
+
+# ─── Jupyter ───────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb
+
+# ─── macOS ─────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
+
+# ─── Editors & IDEs ────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ─── AI / Model Artifacts ──────────────────────────────────
+*.h5
+*.pkl
+*.pt
+*.pth
+*.onnx
+models/
+checkpoints/
+
+# ─── Uploads & Generated Files ─────────────────────────────
+uploads/
+outputs/
+temp/
+tmp/
+*.tmp
+gradcam_output/
+heatmaps/
+
+# ─── Vector DB / Chroma ────────────────────────────────────
+chroma_db/
+*.sqlite3
+
+# ─── Node (if any frontend tooling) ───────────────────────
+node_modules/
+npm-debug.log*
