@@ -1,4 +1,4 @@
-# MedAI — Diagnostic Vision Platform         https://medai-service-552990266764.us-central1.run.app/
+# MedAI — Diagnostic Vision Platform      url:https://medai-service-552990266764.us-central1.run.app/
 
 MedAI is an AI-powered healthcare diagnostic platform.
 This is a practise project 
